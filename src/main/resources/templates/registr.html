@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+
+<link href="/webjars/bootstrap/css/bootstrap.min.css" rel="stylesheet"></link>
+<link href="/webjars/bootstrap/css/bootstrap-theme.css" rel="stylesheet"></link>
+<link href="/webjars/font-awesome/css/font-awesome.css" rel="stylesheet"></link>
+
+<style>
+    #alerts{
+        opacity: 0.7;
+        position: absolute;
+        width: 500px;
+        margin-top: -70px;
+        margin-left: 370px;
+        z-index: 100;
+    }
+    #signUpForm{
+        margin-top: 130px
+    }
+
+    .navbar {
+        margin-bottom: 0;
+        background-color: #f4511e ;
+        z-index: 9999;
+        border: 0;
+        font-size: 14px !important;
+        line-height: 1.42857143 !important;
+        letter-spacing: 4px;
+        border-radius: 0;
+    }
+
+    .navbar li a, .navbar .navbar-brand {
+        color: #fff !important;
+    }
+
+    .navbar-nav li a:hover, .navbar-nav li.active a {
+        color: #f4511e !important;
+        background-color: #fff !important;
+    }
+
+    .navbar-default .navbar-toggle {
+        border-color: transparent;
+        color: #fff !important;
+    }
+</style>
+
+<script src="/webjars/jquery/jquery.min.js"></script>
+<script src="/webjars/bootstrap/bootstrap.min.js"></script>
+<head>
+    <title>Sign up page</title>
+    <script th:inline="javascript" >
+    var username = null;
+    function logout(){
+        document.getElementById("logout").submit();
+        return false;
+    }
+
+     function deleteAlerts(){
+        document.getElementById('alerts').style.display ="none";
+    }
+    window.onload = function() {
+        if ([[${#httpServletRequest.remoteUser}]] == null){
+        username = 'guest';
+            $("#userStatus").append('<a href="/login">Log in</a>');
+        } else{
+            username =[[${#httpServletRequest.remoteUser}]];
+            $("#userStatus").append('<a href="#" onclick="logout();">Log out</a>');
+        }
+
+        $("#username").append(username);
+
+        setTimeout(deleteAlerts, 5000);
+    }
+    </script>
+</head>
+<body>
+
+<form id="logout" th:action="@{/logout}" method="post"></form>
+<nav class="navbar navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Logo</a>
+        </div>
+        <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="/home"  id="username"></a> </li>
+                <li><a href="/">Messenger</a></li>
+                <li id="userStatus"></li>
+                <li><a href="/registr">Sign up</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div id="alerts" th:if="${error} != ''" th:text="${error}"  class="alert alert-info"  role="alert"></div>
+
+<form th:action="@{/registr}" method="post" class="form-horizontal" id="signUpForm">
+
+    <div class="form-group">
+        <label class="control-label col-sm-3" for="login">Login:</label>
+        <div class="col-sm-6">
+            <input type="login" name="username" class="form-control" id="login" placeholder="Enter login" th:if="${error} != null" th:value="${username}"/>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-sm-3" for="email">Email:</label>
+        <div class="col-sm-6">
+            <input type="email" name="email" class="form-control" id="email" placeholder="Enter email" th:if="${error} != null" th:value="${email}"/>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-sm-3" for="password">Password:</label>
+        <div class="col-sm-6">
+            <input type="password" name="password" class="form-control" id="password" placeholder="Enter password"/>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-sm-3" for="password">Password confirm:</label>
+        <div class="col-sm-6">
+            <input type="password" name="password_confirm" class="form-control" id="password_confirm" placeholder="Confirm password"/>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-sm-offset-3 col-sm-6">
+            <button type="submit" class="btn btn-warning">Sign up</button>
+        </div>
+    </div>
+</form>
+
+</body>
+</html>
