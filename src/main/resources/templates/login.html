@@ -5,76 +5,20 @@
 <link href="/webjars/bootstrap/css/bootstrap.min.css" rel="stylesheet"></link>
 <link href="/webjars/bootstrap/css/bootstrap-theme.css" rel="stylesheet"></link>
 <link href="/webjars/font-awesome/css/font-awesome.css" rel="stylesheet"></link>
-<style>
-    #alerts div{
-        opacity: 0.7;
-        position: absolute;
-        width: 500px;
-        margin-top: -70px;
-        margin-left: 370px;
-        z-index: 100;
-    }
-    #loginForm{
-        margin-top: 130px
-    }
-
-    .navbar {
-        margin-bottom: 0;
-        background-color: #f4511e ;
-        z-index: 9999;
-        border: 0;
-        font-size: 14px !important;
-
-        letter-spacing: 4px;
-        border-radius: 0;
-    }
-
-    .navbar li a, .navbar .navbar-brand {
-        color: #fff !important;
-    }
-
-    .navbar-nav li a:hover, .navbar-nav li.active a {
-        color: #f4511e !important;
-        background-color: #fff !important;
-    }
-
-    .navbar-default .navbar-toggle {
-        border-color: transparent;
-        color: #fff !important;
-    }
-
-</style>
+<link href="/css/navbar.css" rel="stylesheet"></link>
+<link href="/css/login.css" rel="stylesheet"></link>
 
 <script src="/webjars/jquery/jquery.min.js"></script>
 <script src="/webjars/bootstrap/bootstrap.min.js"></script>
+
+<script th:inline="javascript" >
+    var remoteUser = [[${#httpServletRequest.remoteUser}]];
+</script>
+<script src="/js/login.js"></script>
+
 <head>
     <title>Login page</title>
-    <script th:inline="javascript" >
-    var username = null;
-    function logout(){
-        document.getElementById("logout").submit();
-        return false;
-    }
 
-    function deleteAlerts(){
-        document.getElementById('alerts').style.display ="none";
-    }
-
-    window.onload = function() {
-        if ([[${#httpServletRequest.remoteUser}]] == null){
-        username = 'guest';
-            $("#userStatus").append('<a href="/login">Log in</a>');
-        } else{
-            username =[[${#httpServletRequest.remoteUser}]];
-            $("#userStatus").append('<a href="#" onclick="logout();">Log out</a>');
-        }
-
-        $("#username").append(username);
-
-        setTimeout(deleteAlerts, 5000);
-
-    }
-    </script>
 </head>
 <body>
 

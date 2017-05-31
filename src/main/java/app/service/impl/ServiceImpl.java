@@ -10,6 +10,7 @@ import app.repositories.RoomRepository;
 import app.service.Service;
 import app.repositories.UsersRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -135,6 +136,7 @@ public class ServiceImpl implements Service {
         return rooms.findByRoomName(roomName);
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Override
     public User deleteUserRoom(String roomName, String userName){
         User user = users.findByUsername(userName);
@@ -147,9 +149,10 @@ public class ServiceImpl implements Service {
 
         user.setRooms(userRooms);
 
-        return users.save(user);
+        return users.saveAndFlush(user);
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Override
     public User addUserRoom(String roomName, String userName){
         User user = users.findByUsername(userName);
@@ -161,7 +164,7 @@ public class ServiceImpl implements Service {
 
         user.setRooms(userRooms);
 
-        return users.save(user);
+        return users.saveAndFlush(user);
     }
 
     @Override

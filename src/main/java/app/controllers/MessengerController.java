@@ -28,7 +28,6 @@ public class MessengerController {
     @RequestMapping( method = RequestMethod.GET)
     public ModelAndView getMessenger(ModelAndView modelAndView) {
         List<Room> rooms = service.getCurrentUserRooms();
-
         modelAndView.addObject("rooms", rooms);
         modelAndView.addObject("error", "");
 
@@ -36,18 +35,15 @@ public class MessengerController {
         return  modelAndView;
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+
     @RequestMapping(method = RequestMethod.POST)
     public ModelAndView postMessenger(@ModelAttribute String error, String roomDelete, String userDelete,
                                       String addUser, String addRoom, String currentRoom,  ModelAndView modelAndView) {
-        if(currentRoom != null){
-            modelAndView.addObject("room",currentRoom);
-        }
         error = "";
         if(roomDelete != null && userDelete != null)
             if(service.deleteUserRoom(roomDelete, userDelete) == null){
                 error = "You can not remove the admin";
-            }
+            } else error = "User successfully removed from the room";
 
         if(addUser != null && addRoom!= null){
             if(service.findUserByName(addUser) != null){
@@ -60,6 +56,8 @@ public class MessengerController {
                 }
                 if (temp) {
                     service.addUserRoom(addRoom, addUser);
+                    modelAndView.addObject("reload", true);
+//                    error = "User successfully added a room";
                 }
 
             } else {
@@ -69,6 +67,9 @@ public class MessengerController {
         List<Room> rooms = service.getCurrentUserRooms();
         modelAndView.addObject("rooms", rooms);
         modelAndView.addObject("error", error);
+        if(currentRoom != null){
+            modelAndView.addObject("room",currentRoom);
+        }
 
         modelAndView.setViewName("/messenger");
         return  modelAndView;

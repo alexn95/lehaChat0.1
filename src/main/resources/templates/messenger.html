@@ -1,267 +1,39 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
-        xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+        xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3"
+            xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
     <title>Messenger</title>
     <link href="/webjars/bootstrap/css/bootstrap.min.css" rel="stylesheet"></link>
     <link href="/webjars/bootstrap/css/bootstrap-theme.css" rel="stylesheet"></link>
     <link href="/webjars/font-awesome/css/font-awesome.css" rel="stylesheet"></link>
-
-    <style>
-        #alerts{
-            opacity: 0.7;
-            position: absolute;
-            width: 500px;
-            margin-left: 300px;
-            z-index: 100;
-        }
-        #addUserDiv{
-            height: 20%;
-            top: 65%;
-            position: fixed;
-        }
-        #main-content{
-            margin-top: 70px;
-        }
-        #scroll{
-            height: 60%;
-            overflow: auto;
-        }
-
-        .navbar {
-            margin-bottom: 0;
-            background-color: #f4511e ;
-            z-index: 9999;
-            border: 0;
-            font-size: 14px !important;
-            line-height: 1.42857143 !important;
-            letter-spacing: 4px;
-            border-radius: 0;
-        }
-
-        .navbar li a, .navbar .navbar-brand {
-            color: #fff !important;
-        }
-
-        .navbar-nav li a:hover, .navbar-nav li.active a {
-            color: #f4511e !important;
-            background-color: #fff !important;
-        }
-
-        .navbar-default .navbar-toggle {
-            border-color: transparent;
-            color: #fff !important;
-        }
-
-
-    </style>
+    <link href="/css/navbar.css" rel="stylesheet"></link>
+    <link href="/css/messenger.css" rel="stylesheet"></link>
 
     <script src="/webjars/jquery/jquery.min.js"></script>
     <script src="/webjars/sockjs-client/sockjs.min.js"></script>
     <script src="/webjars/stomp-websocket/stomp.min.js"></script>
     <script src="/webjars/bootstrap/bootstrap.min.js"></script>
 
-
-    <script th:inline="javascript" >
-    var stompClient = null;
-    var username = null;
-    var rooms = [[${rooms}]];
-    var currentRoom = null;
-    var roomMessage = null;
-    var role = [[${#httpServletRequest.isUserInRole("ROLE_ADMIN")}]];
-    var countUser = 0;
-    var listOfUser = [];
-    var session = null;
-
-    function logout(){
-        document.getElementById("logout").submit();
-        return false;
-    }
-
-    function deleteUser(room, count){
-        document.getElementById("userDelete").value = listOfUser[count];
-        document.getElementById("roomDelete").value = room;
-        if (confirm("Are you sure?") == true) {
-            document.getElementById("deleteUser").submit();
-        }
-        return false;
-    }
-
-    function addUser(){
-        document.getElementById("addRoom").value = currentRoom;
-        if (confirm("Are you sure?") == true) {
-            document.getElementById("addUserForm").submit();
-        }
-        return false;
-    }
-
-    class CashMessage {
-        constructor(content, username, date) {
-            this.content = content;
-            this.username = username;
-            this.date = date;
-        }
-    }
-
-    class CashRoom {
-        constructor() {
-            this.messages = [];
-        }
-        addMessage (content, username, date){
-            this.messages[this.messages.length] = new CashMessage(content, username, date);
-        }
-    }
-
-    var cashRooms = [];
-    cashRooms['mainRoom'] = new CashRoom();
-    cashRooms['customRoom'] = new CashRoom();
-    cashRooms['moderRoom'] = new CashRoom();
-    cashRooms['guestRoom'] = new CashRoom();
-    cashRooms['primeRoom'] = new CashRoom();
-
-
-    window.onload = function() {
-        rooms.forEach(function(room) {
-            $("#rooms").append('<tr><td><button id="' + room.roomName + '" class="btn btn-warning" type="submit" style="width: 110px">' + room.roomName + '</button></td></tr>');
-        });
-
-        if ([[${#httpServletRequest.remoteUser}]] == null){
-        username = 'guest';
-            $("#userStatus").append('<a href="/login">Log in</a>');
-        } else{
-            username =[[${#httpServletRequest.remoteUser}]];
-            $("#userStatus").append('<a href="#" onclick="logout();">Log out</a>');
-        }
-
-        $("#username").append(username);
-
-        document.getElementById("addUserDiv").style.display ="none";
-
-        setTimeout(deleteAlerts, 5000);
-
-        if([[${room}]] != null){
-            rooms.forEach(function(room) {
-                if(room.roomName == [[${room}]]){
-                    connect(room);
-                }
-            });
-        } else{
-            connect(rooms[0]);
-        }
-
-    }
-
-    function connect(room) {
-        if (stompClient != null) {
-                stompClient.disconnect();
-            }
-
-        var socket = new SockJS('/gs-guide-websocket');
-        stompClient = Stomp.over(socket);
-        currentRoom = room.roomName;
-
-        stompClient.connect({}, function (frame) {
-            for (var i = 0; i != rooms.length; i++){
-                $("#" + rooms[i].roomName).prop("disabled", false);
-            }
-            $("#" + room.roomName).prop("disabled", true);
-            $("#chat").html("");
-
-            for (var i = 0; i != rooms.length; i++){
-                if (rooms[i].roomName == room.roomName){
-                    for (var j = 0; j != rooms[i].messages.length; j++){
-                        var date = new Date(rooms[i].messages[j].date);
-                        $("#chat").append("<tr><td><b>" + rooms[i].messages[j].username + '</b> <span class="muted">' +
-                        date.getHours() + ":" + date.getMinutes() + "</span> " + rooms[i].messages[j].content + "</td></tr>");
-                    }
-                }
-            }
-
-            $("#users").html("");
-            if (role){
-                countUser = 0;
-                listOfUser = [];
-                room.users.forEach(function(user) {
-                    if (user != username){
-                        listOfUser[countUser] = user;
-                        $("#users").append('<tr><td>' + user +'</td><td align="right"><button type="button"
-                        onclick="deleteUser(currentRoom, ' + countUser + ')"
-                        class="btn btn-danger btn-xs" data-toggle="confirmation">Delete</button></td></tr>');
-                        countUser++;
-                    }
-                });
-            } else {
-                room.users.forEach(function(user) {
-                    $("#users").append('<tr><td>' + user + '</td></tr>');
-
-                });
-            }
-
-            cashRooms[room.roomName].messages.forEach(function(message) {
-                 $("#chat").append("<tr><td><b>" + message.username + '</b> <span class="muted">' + message.date.getHours() + ":" +
-                 message.date.getMinutes() + "</span> " + message.content + "</td></tr>");
-            });
-
-            document.getElementById("scroll").scrollTop = 9999;
-
-            console.log('Connected: ' + frame);
-            stompClient.subscribe('/topic/' + room.roomName, function (message) {
-                showMessage(JSON.parse(message.body).content, JSON.parse(message.body).username, JSON.parse(message.body).date);
-            });
-
-            if(role){
-                document.getElementById("addUserDiv").style.display ="inline";
-            }
-
-            document.getElementById("currentRoom1").value = currentRoom;
-            document.getElementById("currentRoom2").value = currentRoom;
-        });
-    }
-
-    function sendMessage() {
-        if ($("#message").val() == "") { return; }
-        stompClient.send('/app/' + currentRoom, {}, JSON.stringify({'content': $("#message").val(), 'username': username}));
-        cashRooms[currentRoom].addMessage($("#message").val(), username, new Date());
-        document.getElementById("message").value = "";
-    }
-
-    function showMessage(content, username, dateF) {
-        var date = new Date(dateF);
-        $("#chat").append("<tr><td><b>" + username + '</b> <span class="muted">' + date.getHours() + ":" +
-        date.getMinutes() + "</span> " + content + "</td></tr>");
-        document.getElementById("scroll").scrollTop = 9999;
-    }
-
-    function deleteAlerts(){
-        if(document.getElementById('alerts') != null){
-            document.getElementById('alerts').style.display ="none";
-        }
-    }
-
-    $(function () {
-        $("#sendForm").submit( function (e) {
-            e.preventDefault();
-        });
-
-        $("#roomsForm").submit( function (e) {
-            e.preventDefault();
-        });
-
-        rooms.forEach(function(room) {
-             $( "#" + room.roomName ).click(function() { connect(room); });
-        });
-
-        $( "#send" ).click(function() { sendMessage(); });
-
-        $("#addUserButton").click(function() {
-            addUser();
-        });
-    });
-
+    <script src="/js/bootstrap-confirmation.min.js"  ></script>
+    <script th:inline="javascript">
+        var rooms = [[${rooms}]];
+        var role = [[${#httpServletRequest.isUserInRole("ROLE_ADMIN")}]];
+        var remoteUser = [[${#httpServletRequest.remoteUser}]];
+        var reqRoom = [[${room}]];
+        var reload = [[${reload}]];
     </script>
+    <script src="/js/messenger.js"  ></script>
+
+
 </head>
 <body>
 <noscript><h2 style="color: #ff0000">Seems your browser doesn't support Javascript! Websocket relies on Javascript beingenabled. Please enableJavascript and reload this page!</h2></noscript>
 <form id="logout" th:action="@{/logout}" method="post"></form>
+<form id="connect" th:action="@{/}" method="post">
+    <input type="hidden" name="currentRoom" id="currentRoom"/>
+</form>
+
+
 <form id="deleteUser" th:action="@{/}" method="post" style="display:none">
     <input type="hidden" name="currentRoom" id="currentRoom1"/>
     <input type="text" name="userDelete" id="userDelete"/>
@@ -322,7 +94,7 @@
                 </table>
             </div>
             <div id="addUserDiv" class="col-md-2"  >
-                <form id="addUserForm" method="post" class="form-horizontal">
+                <form id="addUserForm" method="post" onsubmit='' class="form-horizontal">
                     <div class="form-group">
                         <label class="control-label" for="addUser">Add user:</label>
                     </div>

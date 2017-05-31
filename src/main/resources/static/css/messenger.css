@@ -1,0 +1,19 @@
+        #alerts{
+            opacity: 0.7;
+            position: absolute;
+            width: 500px;
+            margin-left: 300px;
+            z-index: 100;
+        }
+        #addUserDiv{
+            height: 20%;
+            top: 65%;
+            position: fixed;
+        }
+        #main-content{
+            margin-top: 70px;
+        }
+        #scroll{
+            height: 60%;
+            overflow: auto;
+        }
